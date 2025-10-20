@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
+import { errorHandler } from './middleware/handleErrors';
 
 const app = express();
 
@@ -21,13 +22,12 @@ app.use((req, res, _next): void => {
 });
 
 // Error Handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  res.status(500).json({
-    status: false,
-    error: err.name,
-    message: err.message,
-    data: {}
-  });
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (err) {
+    errorHandler(err, req, res, next);
+  } else {
+    next();
+  }
 });
 
 export default app;
