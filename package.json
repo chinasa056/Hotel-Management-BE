@@ -4,20 +4,15 @@
   "description": "The Transaction Limit Service enforces regulatory, tier-based, and user-defined rules on financial transactions. It defines how much a user can deposit, withdraw, transfer, or spend on specific services (e.g., airtime, bill payments) within a given timeframe.",
   "main": "index.js",
   "scripts": {
-  "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-  "start": "tsc && node dist/server.js",
-  "build": "tsc",
-  "lint": "eslint .",
-  "lint:fix": "eslint . --fix",
-  "prettier": "prettier \"**/*.+(ts|js|json)\"",
-  "format": "npm run prettier -- --write",
-  "check:format": "npm run prettier -- --check",
-  "check-types": "tsc --noEmit",
-  "validate": "npm run check:format && npm run lint && npm run build",
-  "prepare": "husky",
-  "test": "jest"
-},
- "lint-staged": {
+    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "test": "jest --detectOpenHandles",
+    "test:watch": "jest --watch",
+    "build": "tsc",
+    "start:prod": "node dist/src/server.js",
+    "dev": "ts-node-dev --respawn ./src/server.ts",
+    "deploy": "npm run build && npm run start:prod"
+  },
+  "lint-staged": {
     "**/*.{js,ts,json}": [
       "prettier --write",
       "eslint --fix"
@@ -42,16 +37,20 @@
     "typescript-eslint": "^8.39.1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.76.1",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.2.1",
     "@types/safe-json-stringify": "^1.1.5",
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "html-pdf": "^3.0.1",
     "husky": "^9.1.7",
     "jest": "^30.0.5",
+    "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.1",
     "morgan": "^1.10.1",

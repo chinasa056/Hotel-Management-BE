@@ -1,5 +1,5 @@
 import DomainError from './DomainError';
-import { Errors } from '../constant/errors';
+import { Errors } from '../enum/error';
 
 export default class RequestValidationError extends DomainError {
   protected error_name = 'validation_error';
@@ -7,7 +7,7 @@ export default class RequestValidationError extends DomainError {
   protected httpCode = 422;
 
   public constructor(
-    message: string = Errors.VALIDATION,
+    message: string = Errors.REQUEST_VALIDATION,
     error: Error,
     data: any = null,
     success = false,

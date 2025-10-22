@@ -1,5 +1,5 @@
 import DomainError from './DomainError';
-import { Errors } from '../constant/errors';
+import { Errors } from '../enum/error';
 
 export default class InternalServerError extends DomainError {
   protected error_name = 'server_error';

@@ -7,7 +7,10 @@ export enum Errors {
   RESOURCE_NOT_FOUND = 'The resource you are looking for could not be found',
   SERVICE_UNAVAILABLE = 'Service unavailable. Please try again later',
   INVALID_AUTHORIZATION_TOKEN = 'Authorization token is invalid',
-  SERVER_ERROR = 'Internal server error. Please try again later or contact support if the issue persists'
+  SERVER_ERROR = 'Internal server error. Please try again later or contact support if the issue persists',
+  CONFLICT = 'The request could not be completed due to a conflict with the current state of the target resource',
+  NOT_IMPLEMENTED = 'The requested functionality is not implemented yet',
+
 };
 
 export enum ErrorCode {
