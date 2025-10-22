@@ -3,10 +3,11 @@ dotenv.config();
 import app from './app';
 import dbConnection from './config/database';
 import { logger } from './utils/logger';
+import ConfigService from './services/ConfigService';
 
 const startServer = async (): Promise<void> => {
   await dbConnection();
-
+await ConfigService.loadAllConfigs()
   const port = process.env.PORT || 4000;
 
   app.listen(port, () => {

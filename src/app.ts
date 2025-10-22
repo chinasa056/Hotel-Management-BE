@@ -21,6 +21,10 @@ app.use((req, res, _next): void => {
   });
 });
 
+// app.use('/api/v1', paymentRoutes);
+// app.use('/api/v1', invoiceRoutes);
+// app.use(errorHandler);
+
 // Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err) {
