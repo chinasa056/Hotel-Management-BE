@@ -26,12 +26,12 @@ app.use((req, res, _next): void => {
 // app.use(errorHandler);
 
 // Error Handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  if (err) {
-    errorHandler(err, req, res, next);
-  } else {
-    next();
-  }
-});
+// app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+//   if (err) {
+//     errorHandler(err, req, res, next);
+//   } else {
+//     next();
+//   }
+// });
 
 export default app;

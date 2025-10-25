@@ -68,6 +68,17 @@ export interface CheckOutReminderOptions {
   logoUrl: string;
 }
 
+
+export interface TaskAssignmentOptions {
+  staffName: string;
+  email: string;
+  roomId: string;
+  taskType: string;
+  dueDate: Date;
+  hotelName: string;
+  logoUrl: string;
+}
+
 export interface INotificationService {
   sendReservationConfirmation(options: ReservationConfirmationOptions): Promise<void>;
   sendCheckInReminder(options: CheckInReminderOptions): Promise<void>;
@@ -75,4 +86,5 @@ export interface INotificationService {
   sendPaymentFailure(options: PaymentFailureOptions): Promise<void>;
   sendCancellationNotice(options: CancellationNoticeOptions): Promise<void>;
   sendCheckOutReminder(options: CheckOutReminderOptions): Promise<void>;
+  sendTaskAssignment(options: TaskAssignmentOptions): Promise<void>;
 }

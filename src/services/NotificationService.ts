@@ -11,6 +11,7 @@ import {
   CancellationNoticeOptions,
   CheckOutReminderOptions,
   INotificationService,
+  TaskAssignmentOptions,
 } from '../interfaces/notification';
 import { sendReservationConfirmationTemplate } from '../utils/templates/sendReservationConfirmation';
 import { sendCheckInReminderTemplate } from '../utils/templates/sendCheckInReminder';
@@ -19,8 +20,10 @@ import { sendPaymentFailureTemplate } from '../utils/templates/sendPaymentFailur
 import { sendCancellationNoticeTemplate } from '../utils/templates/sendCancellationNotice';
 import { sendCheckOutReminderTemplate } from '../utils/templates/sendCheckOutReminder';
 import { error } from 'console';
+import { taskAssignmentTemplate } from 'src/utils/templates/taskAssignmentTemplate';
 
 class NotificationService implements INotificationService {
+
   private async sendEmail(options: SendEmailOptions): Promise<void> {
     try {
       const apiKey = await ConfigService.getConfig('SENDGRID_API_KEY');
@@ -37,7 +40,12 @@ class NotificationService implements INotificationService {
       logger.info(`Email sent to ${options.email}: ${options.subject}`);
     } catch (error) {
       logger.error(`Failed to send email to ${options.email}:`, error);
-      throw new InternalServerError('Failed to send email', error as unknown as Error);
+      throw new InternalServerError(
+        'Failed to send email',
+        error instanceof Error ? error : new Error('Email send failed'),
+        { email: options.email, subject: options.subject },
+        false
+      );
     }
   }
 
@@ -91,6 +99,15 @@ class NotificationService implements INotificationService {
     await this.sendEmail({
       email: options.email,
       subject: `Check-out Reminder for ${options.reservationId}`,
+      html,
+    });
+  };
+
+  async sendTaskAssignment(options: TaskAssignmentOptions): Promise<void> {
+    const html = taskAssignmentTemplate(options);
+    await this.sendEmail({
+      email: options.email,
+      subject: `New Task Assignment: ${options.taskType} for Room ${options.roomId}`,
       html,
     });
   }
