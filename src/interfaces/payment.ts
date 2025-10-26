@@ -33,5 +33,6 @@ export interface PaymentVerificationResponse {
 
 export interface IPaymentService {
   initializePayment(reservationId: string, userId: string): Promise<PaymentInitializationResponse>;
+  
   verifyPayment(reference: string): Promise<PaymentVerificationResponse>;
 }
