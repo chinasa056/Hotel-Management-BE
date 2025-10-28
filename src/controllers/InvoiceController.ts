@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
+// src/controllers/InvoiceController.ts
+import { Request, Response, NextFunction } from 'express';
 import InvoiceService from '../services/InvoiceService';
 import { responseHandler } from '../utils/responseHandler';
-import { IInvoice } from '../interfaces/invoice';
 
 class InvoiceController {
   private invoiceService: typeof InvoiceService;
@@ -10,13 +10,26 @@ class InvoiceController {
     this.invoiceService = invoiceService;
   }
 
-  async getInvoice(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getPDF(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { reservationId } = req.params;
-      const invoice: IInvoice = await this.invoiceService.getInvoice(reservationId);
-      res.status(200).json(responseHandler({ storagePath: invoice.storagePath }, 'Invoice fetched successfully'));
+      const { invoiceId } = req.params;
+      const { buffer, fileName } = await this.invoiceService.getPDF(invoiceId);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.send(buffer);
     } catch (error) {
-next(error);
+      next(error);
+    }
+  }
+
+  async generateInvoice(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { reservationId } = req.body;
+      const userId = req.user?.id;
+      const invoiceId = await this.invoiceService.generateInvoicePDF(reservationId, userId);
+      res.status(201).json(responseHandler({ invoiceId }, 'Invoice PDF generated'));
+    } catch (error) {
+      next(error);
     }
   }
 }

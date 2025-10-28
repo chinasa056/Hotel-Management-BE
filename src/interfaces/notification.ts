@@ -1,4 +1,4 @@
-import { IInvoice } from "./invoice";
+import { IInvoice, IInvoiceData } from "./invoice";
 
 export interface SendEmailOptions {
   email: string;
@@ -32,7 +32,6 @@ export interface PaymentConfirmationOptions {
   email: string;
   amount: number;
   reservationId: string;
-  invoiceUrl: IInvoice;
   hotelName: string;
   logoUrl: string;
 }
@@ -79,6 +78,20 @@ export interface TaskAssignmentOptions {
   logoUrl: string;
 }
 
+export interface SendEmailOptions {
+  email: string;
+  subject: string;
+  html: string;
+}
+
+export interface InvoicePDFEmailOptions {
+  email: string;
+  reservationId: string;
+  guestName: string;
+  pdfBuffer: Buffer;
+  fileName: string;
+}
+
 export interface INotificationService {
   sendReservationConfirmation(options: ReservationConfirmationOptions): Promise<void>;
   sendCheckInReminder(options: CheckInReminderOptions): Promise<void>;
@@ -87,4 +100,6 @@ export interface INotificationService {
   sendCancellationNotice(options: CancellationNoticeOptions): Promise<void>;
   sendCheckOutReminder(options: CheckOutReminderOptions): Promise<void>;
   sendTaskAssignment(options: TaskAssignmentOptions): Promise<void>;
+
+  sendInvoiceWithPDF(options: InvoicePDFEmailOptions): Promise<void>;
 }

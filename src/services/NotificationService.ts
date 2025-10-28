@@ -12,15 +12,17 @@ import {
   CheckOutReminderOptions,
   INotificationService,
   TaskAssignmentOptions,
+  InvoicePDFEmailOptions,
 } from '../interfaces/notification';
-import { sendReservationConfirmationTemplate } from '../utils/templates/sendReservationConfirmation';
-import { sendCheckInReminderTemplate } from '../utils/templates/sendCheckInReminder';
-import { sendPaymentConfirmationTemplate } from '../utils/templates/sendPaymentConfirmation';
-import { sendPaymentFailureTemplate } from '../utils/templates/sendPaymentFailure';
-import { sendCancellationNoticeTemplate } from '../utils/templates/sendCancellationNotice';
-import { sendCheckOutReminderTemplate } from '../utils/templates/sendCheckOutReminder';
+import { sendReservationConfirmationTemplate } from '../templates/emailTemplates/sendReservationConfirmation';
+import { sendCheckInReminderTemplate } from '../templates/emailTemplates/sendCheckInReminder';
+import { sendPaymentConfirmationTemplate } from '../templates/emailTemplates/sendPaymentConfirmation';
+import { sendPaymentFailureTemplate } from '../templates/emailTemplates/sendPaymentFailure';
+import { sendCancellationNoticeTemplate } from '../templates/emailTemplates/sendCancellationNotice';
+import { sendCheckOutReminderTemplate } from '../templates/emailTemplates/sendCheckOutReminder';
 import { error } from 'console';
-import { taskAssignmentTemplate } from 'src/utils/templates/taskAssignmentTemplate';
+import { taskAssignmentTemplate } from 'src/templates/emailTemplates/taskAssignmentTemplate';
+import { sendInvoiceEmailTemplate } from 'src/templates/emailTemplates/sendInvoiceEmailTemplate';
 
 class NotificationService implements INotificationService {
 
@@ -111,6 +113,45 @@ class NotificationService implements INotificationService {
       html,
     });
   }
+
+async sendInvoiceWithPDF(options: InvoicePDFEmailOptions): Promise<void> {
+  try {
+    const apiKey = await ConfigService.getConfig('SENDGRID_API_KEY');
+    if (!apiKey) throw new InternalServerError('SendGrid API key not configured', error as unknown as Error);
+
+    const hotelName = await ConfigService.getConfig('HOTEL_NAME') || 'Grand Hotel';
+    const logoUrl = await ConfigService.getConfig('HOTEL_LOGO_URL') || 'https://via.placeholder.com/150x60?text=LOGO';
+
+    sgMail.setApiKey(apiKey);
+
+    await sgMail.send({
+      to: options.email,
+      from: 'no-reply@yourhotel.com',
+      subject: `Your Invoice - Reservation ${options.reservationId}`,
+      html: sendInvoiceEmailTemplate({
+        guestName: options.guestName,
+        reservationId: options.reservationId,
+        hotelName,
+        logoUrl,
+      }),
+      attachments: [
+        {
+          content: options.pdfBuffer.toString('base64'),
+          filename: options.fileName,
+          type: 'application/pdf',
+          disposition: 'inline',        
+          contentId: 'invoice-pdf',    
+        },
+      ],
+    });
+
+    logger.info(`Invoice PDF emailed (with CID button) to ${options.email}`);
+  } catch (error) {
+    logger.error(`Failed to send invoice PDF email:`, error);
+    throw new InternalServerError('Failed to send invoice email', error as Error);
+  }
+}
+
 }
 
 export default new NotificationService();

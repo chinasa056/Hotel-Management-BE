@@ -1,0 +1,66 @@
+// src/utils/templates/sendInvoiceEmailTemplate.ts
+
+export const sendInvoiceEmailTemplate = (options: {
+  guestName: string;
+  reservationId: string;
+  hotelName: string;
+  logoUrl: string;
+}) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .header { background: #1E40AF; color: white; padding: 30px; text-align: center; }
+    .logo { height: 50px; margin-bottom: 10px; }
+    .title { margin: 0; font-size: 24px; font-weight: 600; }
+    .content { padding: 30px; color: #1e293b; line-height: 1.6; }
+    .highlight { background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center; }
+    .download-btn {
+      display: inline-block;
+      background: #1E40AF;
+      color: white;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 8px;
+      margin: 10px 0;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
+    .download-btn:hover { background: #1e3a8a; }
+    .footer { background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${options.logoUrl}" alt="Hotel Logo" class="logo" />
+      <h1 class="title">Invoice Ready</h1>
+    </div>
+    <div class="content">
+      <p>Dear <strong>${options.guestName}</strong>,</p>
+      <p>Thank you for staying with us at <strong>${options.hotelName}</strong>!</p>
+      
+      <div class="highlight">
+        <p><strong>Reservation ID:</strong> ${options.reservationId}</p>
+        <p>Your official invoice is ready.</p>
+        
+        <!-- DOWNLOAD BUTTON -->
+        <a href="cid:invoice-pdf" class="download-btn" download="invoice-${options.reservationId}.pdf">
+          Download Invoice (PDF)
+        </a>
+      </div>
+
+      <p>If the button doesn't work, check your email attachments.</p>
+      <p>Warm regards,<br><strong>${options.hotelName} Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>${options.hotelName} • contact@yourhotel.com</p>
+    </div>
+  </div>
+</body>
+</html>
+`;

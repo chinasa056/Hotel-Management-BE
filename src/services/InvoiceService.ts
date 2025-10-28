@@ -1,119 +1,109 @@
+// src/services/InvoiceService.ts
 import puppeteer from 'puppeteer';
 import SupabaseClientService from './SupabaseClientService';
 import CompressionService from './CompressionService';
 import InvoiceRepository from '../repositories/InvoiceRepository';
 import { IInvoice, IInvoiceData } from '../interfaces/invoice';
+import { generatePdfBuffer } from '../utils/pdfUtils';
+import { invoiceHtmlTemplate } from '../templates/pdf/invoiceTemplate';
+import { revenueReportHtml } from '../templates/pdf/reportTemplates';
+import NotificationService from './NotificationService';
 import ResourceNotFoundError from '../error/ResourceNotFoundError';
 import InternalServerError from '../error/InternalServerError';
 import { logger } from '../utils/logger';
+import PaymentRepository from '../repositories/PaymentRepository';
+import e from 'express';
 import { error } from 'console';
-import PaymentRepository from 'src/repositories/PaymentRepository';
 
 class InvoiceService {
-    private invoiceRepository: InvoiceRepository;
+  private invoiceRepository: typeof InvoiceRepository;
 
-    constructor(invoiceRepository: InvoiceRepository) {
-        this.invoiceRepository = invoiceRepository;
+  constructor(invoiceRepository: typeof InvoiceRepository) {
+    this.invoiceRepository = invoiceRepository;
+  }
+
+  private async getPdfData(pdfBuffer: Buffer): Promise<string> {
+    const compressed = await CompressionService.compress(pdfBuffer.toString('binary'));
+    return compressed!;
+  }
+
+  async generateInvoicePDF(reservationId: string, userId?: string): Promise<string> {
+    try {
+      const reservation = await SupabaseClientService.selectFromTable('reservations', { id: reservationId });
+      if (!reservation) throw new ResourceNotFoundError(`Reservation ${reservationId} not found`, null, {});
+
+      const payment = await PaymentRepository.prototype.findPaymentByReference(reservation.payment_reference);
+      if (!payment) throw new ResourceNotFoundError(`Payment not found`, null, {});
+
+      const room = await SupabaseClientService.selectFromTable('rooms', { id: reservation.room_id });
+      if (!room) throw new ResourceNotFoundError(`Room not found`, null, {});
+
+      const html = invoiceHtmlTemplate(reservation, payment, room);
+      const pdfBuffer = await generatePdfBuffer(html);
+      const pdfData = await this.getPdfData(pdfBuffer);
+
+      const invoiceData: IInvoiceData = {
+        reservationId,
+        type: 'invoice',
+        fileName: `invoice-${reservationId}.pdf`,
+        pdfData,
+        compressedHtml: await CompressionService.compress(html),
+        metadata: { generatedBy: userId },
+      };
+
+      const invoice = await this.invoiceRepository.createInvoice(invoiceData);
+      return invoice._id as string;
+    } catch (error) {
+      logger.error(`Invoice PDF generation failed for ${reservationId}:`, error);
+      throw new InternalServerError('Failed to generate invoice PDF', error as Error);
     }
+  }
 
-    private generateInvoiceHtml(reservation: any, payment: any): string {
-        return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; }
-            .invoice { max-width: 800px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; }
-            .header { text-align: center; }
-            .details { margin-top: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          </style>
-        </head>
-        <body>
-          <div class="invoice">
-            <div class="header">
-              <h1>Hotel Invoice</h1>
-              <p>Reservation ID: ${reservation.id}</p>
-            </div>
-            <div class="details">
-              <p><strong>Guest Name:</strong> ${payment.customerName}</p>
-              <p><strong>Email:</strong> ${payment.email}</p>
-              <p><strong>Amount:</strong> $${(payment.amount / 100).toFixed(2)}</p>
-              <p><strong>Payment Reference:</strong> ${payment.reference}</p>
-              <p><strong>Status:</strong> ${payment.status}</p>
-              <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-    }
+  async generateReportPDF(type: string, filters: any, userId: string): Promise<string> {
+    // Placeholder: integrate with FinancialReportService
+    const mockData = { total: 50000, start: '2025-10-01', end: '2025-10-28', breakdown: [] };
+    const html = revenueReportHtml(mockData);
+    const pdfBuffer = await generatePdfBuffer(html);
+    const pdfData = await this.getPdfData(pdfBuffer);
 
-    async generateAndStoreInvoice(reservationId: string): Promise<IInvoice> {
-        try {
-            const reservation = await SupabaseClientService.selectFromTable('reservations', { id: reservationId }, 'id, amount, guest_email, guest_name, status');
-            if (!reservation) {
-                throw new ResourceNotFoundError(`Reservation ${reservationId} not found`, null, error);
-            }
+    const invoiceData: IInvoiceData = {
+      type: type as any,
+      fileName: `${type.replace('_', '-')}-${new Date().toISOString().split('T')[0]}.pdf`,
+      pdfData,
+      metadata: { generatedBy: userId, filters },
+    };
 
-            const payment = await PaymentRepository.prototype.findPaymentByReference(reservation.payment_reference);
-            if (!payment) {
-                throw new ResourceNotFoundError(`Payment for reservation ${reservationId} not found`, null, error);
-            }
+    const invoice = await this.invoiceRepository.createInvoice(invoiceData);
+    return invoice._id as string;
+  }
 
-            const html = this.generateInvoiceHtml(reservation, payment);
-            const compressedHtml = await CompressionService.compress(html);
+  async getPDF(invoiceId: string): Promise<{ buffer: Buffer; fileName: string }> {
+    const invoice = await this.invoiceRepository.findById(invoiceId);
+    if (!invoice) throw new ResourceNotFoundError(`PDF not found`, null, {});
 
-            const browser = await puppeteer.launch({ headless: true });
-            const page = await browser.newPage();
-            //   await page.setContent(html);
-            //   const pdfBuffer = await page.pdf({ format: 'A4' });
-            //   await browser.close();
+    const compressedBuffer = Buffer.from(invoice.pdfData, 'base64');
+    const pdfBuffer = await CompressionService.decompress(compressedBuffer.toString('base64'));
+    if (!pdfBuffer) throw new InternalServerError('Failed to decompress PDF', error as unknown as Error);
 
-            //   const storagePath = `invoices/${reservationId}/${Date.now()}.pdf`;
-            //   const publicUrl = await SupabaseClientService.uploadToStorage('invoices', storagePath, pdfBuffer, { contentType: 'application/pdf' });
+    return {
+      buffer: Buffer.from(pdfBuffer, 'binary'),
+      fileName: invoice.fileName,
+    };
+  }
 
-            // InvoiceService.ts
-            // ...
-            await page.setContent(html);
-            const pdfBuffer = await page.pdf({ format: 'A4' });
+  async sendInvoiceEmail(reservationId: string): Promise<void> {
+    const invoiceId = await this.generateInvoicePDF(reservationId);
+    const { buffer, fileName } = await this.getPDF(invoiceId);
 
-            //  Explicitly cast the buffer to the Node.js Buffer type
-            const uploadBuffer: Buffer = pdfBuffer as Buffer;
-
-            await browser.close();
-
-            const storagePath = `invoices/${reservationId}/${Date.now()}.pdf`;
-            const publicUrl = await SupabaseClientService.uploadToStorage('invoices', storagePath, uploadBuffer, { contentType: 'application/pdf' });
-
-            const invoiceData: IInvoiceData = {
-                reservationId,
-                storagePath: publicUrl,
-                compressedHtml,
-                createdAt: new Date(),
-            };
-
-            const invoice = await this.invoiceRepository.createInvoice(invoiceData);
-            return invoice;
-        } catch (error) {
-            logger.error(`Error generating invoice for reservation ${reservationId}:`, error);
-            throw new InternalServerError('Failed to generate invoice', error as Error);
-        }
-    }
-
-    async getInvoice(reservationId: string): Promise<IInvoice> {
-        try {
-            const invoice = await this.invoiceRepository.findInvoiceByReservationId(reservationId);
-            if (!invoice) {
-                throw new ResourceNotFoundError(`Invoice for reservation ${reservationId} not found`, null, error);
-            }
-            return invoice;
-        } catch (error) {
-            logger.error(`Error fetching invoice for reservation ${reservationId}:`, error);
-            throw error;
-        }
-    }
+    const reservation = await SupabaseClientService.selectFromTable('reservations', { id: reservationId });
+    await NotificationService.sendInvoiceWithPDF({
+      email: reservation.guest_email,
+      reservationId,
+      guestName: reservation.guest_name,
+      pdfBuffer: buffer,
+      fileName,
+    });
+  }
 }
 
-export default new InvoiceService(new InvoiceRepository());
+export default new InvoiceService(InvoiceRepository);

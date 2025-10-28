@@ -1,5 +1,6 @@
+// src/repositories/InvoiceRepository.ts
 import { Model } from 'mongoose';
-import { IInvoice, IInvoiceData } from '../interfaces/invoice'; 
+import { IInvoice, IInvoiceData } from '../interfaces/invoice';
 import { Invoice } from '../models/InvoiceModel';
 
 class InvoiceRepository {
@@ -13,9 +14,13 @@ class InvoiceRepository {
     return await this.model.create(invoiceData);
   }
 
-  async findInvoiceByReservationId(reservationId: string): Promise<IInvoice | null> {
+  async findById(invoiceId: string): Promise<IInvoice | null> {
+    return await this.model.findById(invoiceId);
+  }
+
+  async findByReservationId(reservationId: string): Promise<IInvoice | null> {
     return await this.model.findOne({ reservationId });
   }
 }
 
-export default InvoiceRepository;
+export default new InvoiceRepository();

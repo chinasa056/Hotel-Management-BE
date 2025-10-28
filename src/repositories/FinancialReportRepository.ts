@@ -34,10 +34,11 @@ class FinancialReportRepository {
 
         const aggregated = await Payment.aggregate([
           { $match: query },
-          { $group: { _id: groupBy._id, amount: { $sum: { $divide: ['$amount', 100] } } },
+          { $group: { _id: groupBy._id, amount: { $sum: { $divide: ['$amount', 100] } } }},
           { $sort: { _id: 1 } },
           { $skip: (page - 1) * limit },
           { $limit: limit },
+          
         ]);
         breakdown = aggregated.map(item => ({ date: item._id, amount: item.amount }));
 
@@ -62,6 +63,7 @@ class FinancialReportRepository {
 
       const total = breakdown.length || payments.length;
       return { total_revenue: totalRevenue, breakdown, total, page, limit };
+       
     } catch (error) {
       logger.error('Error fetching revenue report:', error);
       throw new InternalServerError('Failed to fetch revenue report', error instanceof Error ? error : new Error('Revenue fetch failed'), { filters }, false);
