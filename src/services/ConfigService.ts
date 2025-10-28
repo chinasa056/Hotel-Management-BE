@@ -3,7 +3,7 @@ import ResourceNotFoundError from '../error/ResourceNotFoundError';
 import InternalServerError from '../error/InternalServerError';
 import { logger } from '../utils/logger';
 import { error } from 'console';
-import { Errors } from 'src/enum/error';
+import { Errors } from '../enum/error';
 
 class ConfigService {
     // Cache for faster lookup of settings

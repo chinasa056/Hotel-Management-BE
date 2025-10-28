@@ -30,7 +30,7 @@ export const sendPaymentConfirmationTemplate = (options: PaymentConfirmationOpti
         <div class="content">
           <p>Hello ${options.guestName},</p>
           <p>Your payment of <strong>${formattedAmount}</strong> for reservation <strong>#${options.reservationId}</strong> at <strong>${options.hotelName}</strong> has been successfully processed.</p>
-          <p>View your invoice here: <a href="${options.invoiceUrl}" class="button">View Invoice</a></p>
+       " class="button">View Invoice</a></p>
           <p>Thank you for choosing us!</p>
           <p>Best regards,<br>The <strong>${options.hotelName}</strong> Team</p>
         </div>

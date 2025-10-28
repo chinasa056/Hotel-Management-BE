@@ -1,7 +1,7 @@
 {
-  "name": "transaction-limit-service",
+  "name": "Hotel Management_BE",
   "version": "1.0.0",
-  "description": "The Transaction Limit Service enforces regulatory, tier-based, and user-defined rules on financial transactions. It defines how much a user can deposit, withdraw, transfer, or spend on specific services (e.g., airtime, bill payments) within a given timeframe.",
+  "description": "Backend for Hotel Management System, built with Express and TypeScript, featuring user authentication, room booking, invoicing, and email notifications, utilizing MongoDB and Supabase for data management, designed to streamline hotel operations, enhance customer experience, and improve operational efficiency.",
   "main": "index.js",
   "scripts": {
     "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
@@ -10,7 +10,10 @@
     "build": "tsc",
     "start:prod": "node dist/src/server.js",
     "dev": "ts-node-dev --respawn ./src/server.ts",
-    "deploy": "npm run build && npm run start:prod"
+    "deploy": "npm run build && npm run start:prod",
+    "create:tables": "ts-node ./src/scripts/create-tables.ts",
+    "seed:data": "ts-node ./src/scripts/seed-data.ts",
+    "test:full": "npm run create:tables && npm run seed:data"
   },
   "lint-staged": {
     "**/*.{js,ts,json}": [
@@ -23,6 +26,7 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
@@ -34,9 +38,11 @@
     "globals": "^16.3.0",
     "lint-staged": "^16.1.5",
     "prettier": "^3.6.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript-eslint": "^8.39.1"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.9.0",
     "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.76.1",
     "@types/dotenv": "^8.2.3",
@@ -45,6 +51,7 @@
     "@types/node": "^24.2.1",
     "@types/safe-json-stringify": "^1.1.5",
     "axios": "^1.12.2",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",

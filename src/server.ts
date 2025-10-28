@@ -12,9 +12,7 @@ await ConfigService.loadAllConfigs()
 
   app.listen(port, () => {
     logger.info(`
-        ##############################################
               🚀 App listening on port ${port}
-        ###############################################
     `);
   });
 };

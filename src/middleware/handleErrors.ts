@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { Error as MongooseError } from "mongoose";
 import { JsonWebTokenError } from "jsonwebtoken"
-import { Errors } from "src/enum/error";
-import { CustomError } from "src/error/CustomError";
+import { Errors } from "../enum/error";
+import { CustomError } from "../error/CustomError";
 
 export const errorHandler = (
   error: Error,
